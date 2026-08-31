@@ -1,3 +1,77 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://cdn-uicons.flaticon.com/4.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap');
 
 @import 'tailwindcss';
+
+
+
+
+body {
+  font-family: "Cairo", sans-serif;
+  direction: rtl;
+  background-color: #F9F9FF;
+}
+
+
+.btn {
+
+}
+
+i[class^="fi-br-"]:before, i[class*=" fi-br-"]:before, span[class^="fi-br-"]:before, span[class*="fi-br-"]:before {
+  position: relative;
+  top: 3px;
+}
+
+
+@utility menu-item {
+  @apply relative flex items-center w-full gap-3 px-3 py-2 font-medium rounded-sm ;
+}
+@utility menu-item-active {
+  @apply bg-[#FEDB97] text-[#785F27] dark:bg-gray-500/[0.12] dark:text-gray-400;
+}
+
+@utility menu-item-inactive {
+  @apply text-gray-700 hover:bg-[#FEDB97]/[0.5] group-hover:text-[#785F27] dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
+}
+
+@utility menu-item-icon {
+  @apply text-gray-500 group-hover:text-[#785F27] dark:text-gray-400;
+}
+
+@utility menu-item-icon-active {
+  @apply text-[#785F27] dark:text-gray-400;
+}
+
+@utility menu-item-icon-size {
+  & i {
+    @apply !size-6;
+  }
+}
+
+@utility no-scrollbar {
+  /* Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    @apply size-1.5;
+  }
+
+  &::-webkit-scrollbar-track {
+    @apply rounded-full;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    @apply bg-gray-200 rounded-full dark:bg-gray-700;
+  }
+}
+
+
+textarea
+{
+   resize: none;
+}

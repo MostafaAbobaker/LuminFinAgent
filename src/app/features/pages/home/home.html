@@ -1,0 +1,72 @@
+<section class="home-page">
+  <div class="chat-shell">
+    <header class="chat-header">
+      <div>
+        <p class="eyebrow">AI Agent</p>
+        <h1>المساعد الذكي لوزارة المالية</h1>
+      </div>
+      <span class="status-pill">متصل</span>
+    </header>
+
+    <div class="messages-panel" #messagesPanel>
+      @for (message of messages; track trackMessage($index, message)) {
+        <div class="message-row" [class.user-row]="message.role === 'user'" [class.assistant-row]="message.role === 'assistant'">
+          <div class="message-bubble" [class.user-bubble]="message.role === 'user'" [class.assistant-bubble]="message.role === 'assistant'">
+            <p>{{ message.text }}</p>
+          </div>
+
+          @if (message.sources && message.sources.length > 0) {
+            <div class="sources-box">
+              <span class="sources-label">المصادر</span>
+              @for (source of message.sources; track source.title) {
+                <a class="source-link" [href]="source.url" target="_blank" rel="noopener noreferrer">
+                  <span class="source-title">{{ source.title }}</span>
+                  <small>{{ source.snippet }}</small>
+                </a>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (isThinking) {
+        <div class="message-row assistant-row">
+          <div class="message-bubble assistant-bubble typing-bubble">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <form class="composer" (submit)="sendMessage($event)" novalidate>
+      <div class="attachment-wrap">
+        <input id="chat-attachment-input" type="file" accept="*/*" hidden (change)="handleAttachment($event)" />
+        @if (selectedAttachmentName) {
+          <span class="attachment-name">{{ selectedAttachmentName }} <i class="fi fi-br-clip"></i> </span>
+        }
+      </div>
+
+      <div class="input-row">
+        <textarea
+          #composerInput
+          rows="1"
+          [value]="draft"
+          (input)="onDraftChange($event)"
+          (keydown)="handleComposerKeydown($event)"
+          placeholder="اكتب رسالتك هنا..."
+          aria-label="نص الرسالة"
+        ></textarea>
+
+        <button type="button" class="attachment-button" (click)="triggerAttachment()" aria-label="إرفاق ملف">
+          <span class="attachment-icon"><i class="fi fi-br-paperclip-vertical"></i></span>
+
+        </button>
+        <button type="submit" class="send-button" [disabled]="isThinking || (!draft.trim() && !selectedAttachmentName)" aria-label="إرسال الرسالة">
+          <span><i class="fi fi-br-paper-plane"></i></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</section>

@@ -1,0 +1,16 @@
+<main class="min-h-screen xl:flex">
+  <app-sidebar></app-sidebar>
+  <div class="flex-1 transition-all duration-300 ease-in-out xl:ms-[290px] ">
+    <app-header></app-header>
+    <div class="page-content p-5 pb-2 flex flex-col h-[calc(100dvh-65px)]">
+      <div class="grow relative mb-3">
+
+        <router-outlet></router-outlet>
+      </div>
+      <div class="flex-none">
+        <app-footer></app-footer>
+
+      </div>
+    </div>
+  </div>
+</main>
