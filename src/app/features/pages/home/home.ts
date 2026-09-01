@@ -1,19 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewChecked, Component, ElementRef, ViewChild } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, inject, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { AiAgent } from '../../services/ai-agent';
+import { ChatMessage } from '../../Interfaces/chat-message';
 
-interface ChatSource {
-  title: string;
-  url: string;
-  snippet: string;
-}
 
-interface ChatMessage {
-  id: number;
-  role: 'user' | 'assistant';
-  text: string;
-  createdAt: Date;
-  sources?: ChatSource[];
-}
 
 @Component({
   imports: [CommonModule],
@@ -27,7 +17,6 @@ export class Home implements AfterViewChecked {
 
   draft = '';
   isThinking = false;
-  selectedAttachmentName = '';
   messages: ChatMessage[] = [
     {
       id: 1,
@@ -36,6 +25,11 @@ export class Home implements AfterViewChecked {
       createdAt: new Date(),
     },
   ];
+  private readonly aiAgent= inject(AiAgent);
+  private readonly cdr = inject(ChangeDetectorRef);
+
+
+
 
   ngAfterViewChecked(): void {
     this.scrollToBottom();
@@ -54,31 +48,17 @@ export class Home implements AfterViewChecked {
     }
   }
 
-  triggerAttachment(): void {
-    const fileInput = document.getElementById('chat-attachment-input') as HTMLInputElement | null;
-    fileInput?.click();
-  }
+  triggerAttachment(): void {}
 
-  handleAttachment(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    this.selectedAttachmentName = file.name;
-    input.value = '';
-  }
+  handleAttachment(event: Event): void {}
 
   sendMessage(event?: Event): void {
     event?.preventDefault();
     event?.stopPropagation();
 
     const trimmed = this.draft.trim();
-    const hasAttachment = !!this.selectedAttachmentName;
 
-    if (!trimmed && !hasAttachment) {
+    if (!trimmed) {
       return;
     }
 
@@ -86,7 +66,7 @@ export class Home implements AfterViewChecked {
       return;
     }
 
-    const userText = trimmed || `تم إرفاق الملف: ${this.selectedAttachmentName}`;
+    const userText = trimmed;
 
     this.messages.push({
       id: Date.now(),
@@ -96,7 +76,6 @@ export class Home implements AfterViewChecked {
     });
 
     this.draft = '';
-    this.selectedAttachmentName = '';
     this.isThinking = true;
 
     const targetInput = this.composerInput?.nativeElement;
@@ -105,39 +84,52 @@ export class Home implements AfterViewChecked {
       this.resizeTextarea(targetInput);
       targetInput.focus();
     }
+    const askValue = {
+      question: userText,
+      k: 8,
+      think: true,
+      fast: false,
+      show_thinking: false
+    }
+    // Call the AI Agent API
+    this.aiAgent.ask(askValue).subscribe({
 
-    window.setTimeout(() => {
-      this.messages.push(this.buildAssistantReply(userText));
-      this.isThinking = false;
-    }, 1800);
-  }
+      next: (response) => {
+        console.log(response);
 
-  private buildAssistantReply(question: string): ChatMessage {
-    const lowerQuestion = question.toLowerCase();
-    const isFinanceReportQuery = lowerQuestion.includes('تقرير') || lowerQuestion.includes('تقارير') || lowerQuestion.includes('ميزانية') || lowerQuestion.includes('مالي') || lowerQuestion.includes('المالية');
+        // Convert API sources to ChatSource format
+        const chatSources = response.sources?.map((source: any) => ({
+          title: source.label || source.document,
+          url: source.document || source.file || '#',
+          snippet: source.citation || '',
+          file: source.file,
+          page: source.page,
+          pdf_page: source.pdf_page,
+          label: source.label
+        })) || [];
 
-    const text = isFinanceReportQuery
-      ? 'بناءً على آخر التقارير المالية المتاحة، الأداء العام مستقر وموجه نحو التحسين، مع استمرار التوزيع الاستراتيجي للموارد في القطاعات ذات الأولوية. يمكننا التعمق في تفاصيل النفقات أو الإيرادات إذا رغبت.'
-      : 'تم استلام طلبك، وتم تجهيز الإجابة بناءً على البيانات المتاحة في التقارير الداخلية ذات الصلة. أستطيع أن أشرح الأرقام، أراجع الفروقات، أو أساعد في رسم تصور مالي سريع.';
-
-    return {
-      id: Date.now() + 1,
-      role: 'assistant',
-      text,
-      createdAt: new Date(),
-      sources: [
-        {
-          title: 'تقرير الأداء المالي - الربع الثالث',
-          url: '#',
-          snippet: 'مؤشرات الإيرادات والنفقات وتوزيع الموارد حسب المحاور الاستراتيجية.',
-        },
-        {
-          title: 'ملف الموازنة السنوية',
-          url: '#',
-          snippet: 'تحليل التخصيصات والالتزامات المالية للقطاعات التشغيلية.',
-        },
-      ],
-    };
+        this.messages.push({
+          id: Date.now() + 1,
+          role: 'assistant',
+          text: response.answer,
+          createdAt: new Date(),
+          sources: chatSources
+        });
+        this.isThinking = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('API Error:', error);
+        this.messages.push({
+          id: Date.now() + 1,
+          role: 'assistant',
+          text: 'حدث خطأ في الاتصال بالخادم. يرجى المحاولة لاحقاً.',
+          createdAt: new Date(),
+        });
+        this.isThinking = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   private resizeTextarea(element: HTMLTextAreaElement): void {

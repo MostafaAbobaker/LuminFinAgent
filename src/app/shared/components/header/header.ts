@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { SidebarService } from '../../services/sidebarService';
 
 @Component({
   imports: [],
@@ -6,4 +7,15 @@ import { Component } from '@angular/core';
   styleUrl: './header.css',
   templateUrl: './header.html',
 })
-export class Header {}
+export class Header {
+  sideState : boolean = false;
+  sidebarOpen = inject(SidebarService);
+
+  sideToggle() {
+    this.sideState = !this.sideState;
+    this.sidebarOpen.toggleSidebar();
+  }
+  ngOnInit(): void {
+    this.sideState = this.sidebarOpen.sidebarOpen();
+  }
+}

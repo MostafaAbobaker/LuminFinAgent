@@ -21,7 +21,17 @@
               @for (source of message.sources; track source.title) {
                 <a class="source-link" [href]="source.url" target="_blank" rel="noopener noreferrer">
                   <span class="source-title">{{ source.title }}</span>
-                  <small>{{ source.snippet }}</small>
+                  <div class="source-details">
+                    @if (source.file) {
+                      <small class="source-file">📄 {{ source.file }}</small>
+                    }
+                    @if (source.page) {
+                      <small class="source-page">صفحة: {{ source.page }}</small>
+                    }
+                  </div>
+                  @if (source.snippet) {
+                    <small class="source-snippet">{{ source.snippet }}</small>
+                  }
                 </a>
               }
             </div>
@@ -41,12 +51,12 @@
     </div>
 
     <form class="composer" (submit)="sendMessage($event)" novalidate>
-      <div class="attachment-wrap">
+      <!-- <div class="attachment-wrap">
         <input id="chat-attachment-input" type="file" accept="*/*" hidden (change)="handleAttachment($event)" />
         @if (selectedAttachmentName) {
           <span class="attachment-name">{{ selectedAttachmentName }} <i class="fi fi-br-clip"></i> </span>
         }
-      </div>
+      </div> -->
 
       <div class="input-row">
         <textarea
@@ -59,11 +69,11 @@
           aria-label="نص الرسالة"
         ></textarea>
 
-        <button type="button" class="attachment-button" (click)="triggerAttachment()" aria-label="إرفاق ملف">
+        <!-- <button type="button" class="attachment-button" (click)="triggerAttachment()" aria-label="إرفاق ملف">
           <span class="attachment-icon"><i class="fi fi-br-paperclip-vertical"></i></span>
 
-        </button>
-        <button type="submit" class="send-button" [disabled]="isThinking || (!draft.trim() && !selectedAttachmentName)" aria-label="إرسال الرسالة">
+        </button> -->
+        <button type="submit" class="send-button" [disabled]="isThinking || !draft.trim()" aria-label="إرسال الرسالة">
           <span><i class="fi fi-br-paper-plane"></i></span>
         </button>
       </div>
