@@ -3,18 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AskRequest } from '../Interfaces/ask-request';
 import { AskResponse } from '../Interfaces/ask-response';
-
-
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AiAgent {
-  private readonly API_URL = 'http://146.190.243.196:8000/ask';
+  private readonly API_URL = `${environment.apiUrl}/ask`;
 
   http: HttpClient = inject(HttpClient);
-
-
 
   ask(request: AskRequest): Observable <AskResponse> {
     const payload = {
