@@ -42,6 +42,9 @@
       @if (isThinking) {
         <div class="message-row assistant-row">
           <div class="message-bubble assistant-bubble typing-bubble">
+            @if (loadingStatus) {
+              <span class="loading-status">{{ loadingStatus }}</span>
+            }
             <span class="typing-dot"></span>
             <span class="typing-dot"></span>
             <span class="typing-dot"></span>

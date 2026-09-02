@@ -92,7 +92,8 @@
 }
 
 .message-bubble p {
-  margin: 0
+  margin: 0;
+  white-space: pre-line
 }
 
 .assistant-bubble {
@@ -181,8 +182,16 @@
   align-items: center;
   gap: 8px;
   min-width: 90px;
+  max-width: min(68%, 720px);
   justify-content: center;
   min-height: 52px
+}
+
+.loading-status {
+  margin-inline-start: 4px;
+  color: #40635d;
+  font-size: .85rem;
+  white-space: nowrap;
 }
 
 .typing-dot {

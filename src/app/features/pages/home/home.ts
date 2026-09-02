@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewChecked, Component, ElementRef, inject, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, inject, ViewChild, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { AiAgent } from '../../services/ai-agent';
 import { ChatMessage } from '../../Interfaces/chat-message';
 
@@ -11,12 +11,13 @@ import { ChatMessage } from '../../Interfaces/chat-message';
   styleUrl: './home.css',
   templateUrl: './home.html',
 })
-export class Home implements AfterViewChecked {
+export class Home implements AfterViewChecked, OnDestroy {
   @ViewChild('composerInput') private composerInput?: ElementRef<HTMLTextAreaElement>;
   @ViewChild('messagesPanel') private messagesPanel?: ElementRef<HTMLDivElement>;
 
   draft = '';
   isThinking = false;
+  loadingStatus = '';
   messages: ChatMessage[] = [
     {
       id: 1,
@@ -27,12 +28,24 @@ export class Home implements AfterViewChecked {
   ];
   private readonly aiAgent= inject(AiAgent);
   private readonly cdr = inject(ChangeDetectorRef);
+  private loadingStatusTimeout?: ReturnType<typeof setTimeout>;
+  private loadingStatusInterval?: ReturnType<typeof setInterval>;
+  private readonly loadingStatuses = [
+    'جارٍ البحث عن المعلومات',
+    'جارٍ الحصول على البيانات',
+    'جارٍ تجهيز الإجابة',
+    'نراجع النتائج الأخيرة',
+  ];
 
 
 
 
   ngAfterViewChecked(): void {
     this.scrollToBottom();
+  }
+
+  ngOnDestroy(): void {
+    this.stopLoadingStatus();
   }
 
   onDraftChange(event: Event): void {
@@ -77,6 +90,7 @@ export class Home implements AfterViewChecked {
 
     this.draft = '';
     this.isThinking = true;
+    this.startLoadingStatus();
 
     const targetInput = this.composerInput?.nativeElement;
     if (targetInput) {
@@ -111,11 +125,12 @@ export class Home implements AfterViewChecked {
         this.messages.push({
           id: Date.now() + 1,
           role: 'assistant',
-          text: response.answer,
+          text: this.formatAnswer(response.answer),
           createdAt: new Date(),
           sources: chatSources
         });
         this.isThinking = false;
+        this.stopLoadingStatus();
         this.cdr.detectChanges();
       },
       error: (error) => {
@@ -127,9 +142,45 @@ export class Home implements AfterViewChecked {
           createdAt: new Date(),
         });
         this.isThinking = false;
+        this.stopLoadingStatus();
         this.cdr.detectChanges();
       }
     });
+  }
+
+  private formatAnswer(answer: string): string {
+    return answer.replace(/\s*(\[s\s*\d+\])/gi, '\n$1').trim();
+  }
+
+  private startLoadingStatus(): void {
+    this.stopLoadingStatus();
+    this.loadingStatus = '';
+
+    this.loadingStatusTimeout = setTimeout(() => {
+      let statusIndex = 0;
+      this.loadingStatus = this.loadingStatuses[statusIndex];
+      this.cdr.detectChanges();
+
+      this.loadingStatusInterval = setInterval(() => {
+        statusIndex = (statusIndex + 1) % this.loadingStatuses.length;
+        this.loadingStatus = this.loadingStatuses[statusIndex];
+        this.cdr.detectChanges();
+      }, 4000);
+    }, 3000);
+  }
+
+  private stopLoadingStatus(): void {
+    if (this.loadingStatusTimeout) {
+      clearTimeout(this.loadingStatusTimeout);
+      this.loadingStatusTimeout = undefined;
+    }
+
+    if (this.loadingStatusInterval) {
+      clearInterval(this.loadingStatusInterval);
+      this.loadingStatusInterval = undefined;
+    }
+
+    this.loadingStatus = '';
   }
 
   private resizeTextarea(element: HTMLTextAreaElement): void {
